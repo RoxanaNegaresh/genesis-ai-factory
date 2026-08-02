@@ -56,6 +56,8 @@ security review.
 organization: eleven specialist agents that hand work to each other through
 seven phases, and a verification stage that compiles the result, runs its
 tests, starts it and probes it before declaring it done.
+<img alt="Screenshot 2026-07-31 154311" src="https://github.com/user-attachments/assets/8a5f59f7-456f-490e-8c99-12e46b2f4334" />
+
 
 ## What makes it different
 
