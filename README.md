@@ -668,11 +668,5 @@ adds product-specific reasoning on top.
 
 ---
 
-## License
 
-[Apache License 2.0](LICENSE) — commercial use, modification and distribution
-permitted, with a patent grant.
-
-<div align="center">
-<sub>Built to run on your machine, and to prove what it builds actually works.</sub>
 </div>
