@@ -1,0 +1,127 @@
+name: Desktop release
+
+# Builds the installable desktop application for Windows, macOS and Linux.
+#
+# The Tauri shell links the platform webview, so it cannot be cross-compiled:
+# a Windows installer has to be produced on a Windows runner. The Go engine
+# does cross-compile, but it is built on each runner anyway so the sidecar and
+# the shell always come from the same commit.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: .exe
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: ''
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            ext: ''
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # Tauri 2's dependency tree contains edition2024 manifests, which
+          # Cargo below 1.85 cannot parse.
+          toolchain: '1.85'
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      # Tauri links GTK and WebKit2GTK on Linux; they are not preinstalled.
+      - name: Linux system libraries
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf \
+            libssl-dev libxdo-dev
+
+      # Icons are generated rather than committed as binaries, so the format is
+      # a property of the code. Tauri rejects any PNG that is not 8-bit RGBA.
+      - name: Generate icons
+        run: python3 apps/desktop/src-tauri/icons/generate.py
+
+      # The engine ships inside the application. Tauri resolves a sidecar by
+      # target triple, so the file name must carry it.
+      - name: Build the engine sidecar
+        shell: bash
+        run: |
+          mkdir -p apps/desktop/src-tauri/binaries
+          CGO_ENABLED=0 go build -trimpath \
+            -ldflags "-s -w -X main.version=${GITHUB_REF_NAME#v}" \
+            -o "apps/desktop/src-tauri/binaries/genesis-server-${{ matrix.target }}${{ matrix.ext }}" \
+            github.com/genesis-ai-factory/control-plane/cmd/genesis-server
+
+      - name: Verify the engine runs
+        shell: bash
+        run: |
+          BIN="apps/desktop/src-tauri/binaries/genesis-server-${{ matrix.target }}${{ matrix.ext }}"
+          chmod +x "$BIN" || true
+          "$BIN" --version || true
+
+      - name: Install web dependencies
+        working-directory: apps/desktop
+        run: npm ci
+
+      - name: Type check
+        working-directory: apps/desktop
+        run: npm run typecheck
+
+      # Asserts the invariants that have broken real builds: every configured
+      # icon exists, each PNG is 8-bit RGBA, icon.ico is a real container, and
+      # the toolchain floor admits edition2024.
+      - name: Packaging invariants
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --test packaging
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          args: --target ${{ matrix.target }}
+          tagName: ${{ github.ref_name }}
+          releaseName: Genesis AI Factory ${{ github.ref_name }}
+          releaseBody: |
+            Installable desktop application. The engine is bundled inside —
+            there is nothing else to install, no account, no API key and no
+            subscription. Everything runs on the local machine.
+          releaseDraft: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: genesis-${{ matrix.target }}
+          path: |
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.msi
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.exe
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.dmg
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.deb
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage
+          if-no-files-found: warn

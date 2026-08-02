@@ -1,0 +1,37 @@
+[package]
+name = "genesis-desktop"
+version = "0.1.0"
+description = "Genesis AI Factory — autonomous software factory"
+authors = ["Genesis AI Factory"]
+edition = "2021"
+# The floor is set by what the dependency tree needs to *resolve*, not by what
+# this crate's own source uses. Tauri 2's transitive dependencies — time-core,
+# dlopen2_derive and others — publish manifests declaring `edition2024`, and a
+# Cargo older than 1.85 cannot parse them at all: resolution fails with
+# "feature `edition2024` is required" before a line is compiled.
+#
+# 1.77 was therefore a floor that no longer described reality. Stating 1.85
+# means a too-old toolchain is refused by Cargo with a message naming the
+# version needed, instead of failing later inside an unrelated crate's manifest.
+rust-version = "1.85"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.0", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = "2.10"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+# A desktop binary should be small and fast to start; these settings roughly
+# halve the artifact size compared to the defaults.
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

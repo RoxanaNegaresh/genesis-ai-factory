@@ -1,0 +1,13 @@
+# Release builds of the desktop shell are memory-hungry.
+#
+# `codegen-units = 1` plus fat LTO — both wanted for a small, fast binary —
+# make each rustc process hold a large arena. Cargo defaults to one job per
+# CPU, so on a machine with little RAM per core the kernel OOM-kills a
+# compiler mid-run. The failure names whichever crate happened to be building
+# (gtk, in our case) and looks like a problem with that dependency, which is
+# a long way from the truth.
+#
+# Two jobs is a compromise: it still parallelises, and it keeps peak usage
+# roughly halved. Override on a large build machine with `cargo build -j8`.
+[build]
+jobs = 2

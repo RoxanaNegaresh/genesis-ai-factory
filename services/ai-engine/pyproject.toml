@@ -1,0 +1,16 @@
+[project]
+name = "genesis-ai"
+version = "0.2.0"
+description = "Model management for the Genesis AI Factory"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+genesis-ai = "genesis_ai.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["genesis_ai*"]

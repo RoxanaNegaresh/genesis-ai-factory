@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS idempotency_keys;
+DROP TABLE IF EXISTS audit_log;
+DROP TABLE IF EXISTS workspace_files;
+DROP TABLE IF EXISTS workspaces;
+DROP TABLE IF EXISTS artifacts;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS task_attempts;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS run_phases;
+DROP TABLE IF EXISTS runs;
+DROP TABLE IF EXISTS project_members;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS users;

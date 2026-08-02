@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Token definitions. Dark is the default because this is a developer tool used
+ * for long sessions; light is fully supported rather than an afterthought.
+ */
+:root {
+  /* Neutrals carry a trace of the accent hue rather than being pure grey.
+     A warm-neutral surface under a pink accent reads as one designed palette;
+     true grey next to saturated pink looks like an accent bolted onto a
+     template. */
+  --bg: #ffffff;
+  --surface-1: #fdfafb;
+  --surface-2: #f8f2f5;
+  --surface-3: #f0e6eb;
+  --border: #ecdfe5;
+  --border-strong: #dcc6d0;
+  --fg: #171013;
+  --fg-muted: #5c4b53;
+  --fg-subtle: #96828c;
+
+  /* Deep rose. Chosen over hot pink so long sessions do not fatigue, and
+     because it clears 4.5:1 against white for text — a lighter pink would
+     force every label to be near-black to stay legible. */
+  --accent: #d81e69;
+  --accent-hover: #c01659;
+  --accent-active: #a4114b;
+  --accent-soft: #fdeaf2;
+  --accent-ring: rgba(216, 30, 105, 0.32);
+  --accent-fg: #ffffff;
+
+  --success: #0f9d58;
+  --warning: #cf8420;
+  --danger: #d93a3a;
+  --info: #2b7fd4;
+}
+
+.dark {
+  /* Near-black with a rose undertone, not blue-black: a blue-tinted dark
+     surface makes a pink accent look accidental. */
+  --bg: #0c0910;
+  --surface-1: #14101a;
+  --surface-2: #1c1622;
+  --surface-3: #261d2d;
+  --border: #2a2032;
+  --border-strong: #3d2f47;
+  --fg: #f0e9ee;
+  --fg-muted: #a99daa;
+  --fg-subtle: #7a6b7a;
+
+  /* Lifted and slightly desaturated for dark mode. The light-mode rose on a
+     near-black background vibrates; this clears 4.5:1 against --bg. */
+  --accent: #ff5f9e;
+  --accent-hover: #ff7cae;
+  --accent-active: #ef4a8c;
+  --accent-soft: rgba(255, 95, 158, 0.14);
+  --accent-ring: rgba(255, 95, 158, 0.38);
+  --accent-fg: #16090f;
+
+  --success: #35c07d;
+  --warning: #e0a745;
+  --danger: #f2645f;
+  --info: #5aa9f0;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* A desktop chrome should not be text-selectable like a web page; content
+       areas opt back in below. */
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  pre,
+  code,
+  [data-selectable] {
+    user-select: text;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-3);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong);
+    background-clip: content-box;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Respect a user's reduced-motion preference: animation is decoration, and
+   decoration must never override accessibility. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,39 @@
+# Secrets
+.env
+.env.local
+*.pem
+*.key
+session.json
+jwt.secret
+
+# Build output
+/bin/
+dist/
+node_modules/
+target/
+coverage.out
+*.exe
+
+# Local data
+*.db
+*.db-shm
+*.db-wal
+/data/
+workspaces/
+
+# Editor and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Python virtual environments
+.venv/
+venv/
+
+# Rust build output
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/binaries/
+
+# Local transfer artifact, not part of the repository
+genesis-history.bundle

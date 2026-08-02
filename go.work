@@ -1,0 +1,8 @@
+go 1.25.0
+
+// A Go workspace lets the CLI and the control plane build together and share
+// changes during development without publishing intermediate module versions.
+use (
+	./apps/cli
+	./services/control-plane
+)

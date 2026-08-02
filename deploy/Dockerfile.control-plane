@@ -1,0 +1,52 @@
+# Control plane image.
+#
+# The build is staged so dependency download is cached separately from source
+# compilation, and the runtime image is distroless: no shell, no package
+# manager, nothing for an attacker to pivot with if the process is compromised.
+
+FROM golang:1.25-alpine AS build
+
+WORKDIR /src
+
+# Manifests first: this layer only invalidates when dependencies change.
+COPY go.work go.work.sum* ./
+COPY services/control-plane/go.mod services/control-plane/go.sum ./services/control-plane/
+COPY apps/cli/go.mod apps/cli/go.sum* ./apps/cli/
+RUN go mod download all
+
+COPY services/control-plane ./services/control-plane
+COPY apps/cli ./apps/cli
+
+ARG VERSION=0.1.0
+ARG COMMIT=docker
+ARG BUILD_DATE=unknown
+
+RUN CGO_ENABLED=0 GOOS=linux go build \
+      -trimpath \
+      -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildDate=${BUILD_DATE}" \
+      -o /out/genesis-server \
+      github.com/genesis-ai-factory/control-plane/cmd/genesis-server \
+ && CGO_ENABLED=0 GOOS=linux go build \
+      -trimpath \
+      -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${COMMIT}" \
+      -o /out/genesis \
+      github.com/genesis-ai-factory/cli/cmd/genesis
+
+FROM gcr.io/distroless/static-debian12:nonroot
+
+WORKDIR /app
+COPY --from=build /out/genesis-server /app/genesis-server
+COPY --from=build /out/genesis /app/genesis
+
+# Generated workspaces live here and must be writable by the non-root user.
+COPY --from=build --chown=nonroot:nonroot /out /tmp/.keep
+USER nonroot:nonroot
+
+ENV GENESIS_ADDR=":8787" \
+    GENESIS_DATA_DIR="/data" \
+    GENESIS_LOG_JSON="true"
+
+EXPOSE 8787
+VOLUME ["/data"]
+
+ENTRYPOINT ["/app/genesis-server"]

@@ -1,0 +1,45 @@
+name: Bug report
+description: Something does not work as described
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `genesis doctor`
+      description: Reports version, agent and blueprint counts, and connectivity.
+      render: shell
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Engine log
+      description: >
+        Only for engine failures. Windows %APPDATA%\genesis\engine.log ·
+        macOS ~/Library/Application Support/genesis/engine.log ·
+        Linux ~/.config/genesis/engine.log
+      render: shell
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and version
+    validations:
+      required: true

@@ -1,0 +1,106 @@
+# Full local stack for Genesis AI Factory.
+#
+# None of this is required to run the product: `genesis-server` boots on SQLite
+# with no dependencies at all. This file exists for the workstation topology,
+# where PostgreSQL, Redis and Qdrant back a multi-user or long-running install.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: genesis-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-genesis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-genesis}
+      POSTGRES_DB: ${POSTGRES_DB:-genesis}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-genesis}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: genesis-redis
+    # Persistence is off by default: Redis holds the event fan-out bridge and
+    # rate-limit counters, both of which are safe to lose on restart.
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.1
+    container_name: genesis-qdrant
+    volumes:
+      - qdrantdata:/qdrant/storage
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    restart: unless-stopped
+
+  control-plane:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.control-plane
+    container_name: genesis-control-plane
+    environment:
+      GENESIS_ENV: production
+      GENESIS_ADDR: ":8787"
+      GENESIS_DB_DRIVER: postgres
+      GENESIS_DB_DSN: postgres://${POSTGRES_USER:-genesis}:${POSTGRES_PASSWORD:-genesis}@postgres:5432/${POSTGRES_DB:-genesis}?sslmode=disable
+      GENESIS_REDIS_URL: redis://redis:6379/0
+      GENESIS_QDRANT_URL: http://qdrant:6333
+      GENESIS_JWT_SECRET: ${GENESIS_JWT_SECRET:?set GENESIS_JWT_SECRET, for example: openssl rand -hex 32}
+      GENESIS_SINGLE_USER: "false"
+      GENESIS_AUTO_MIGRATE: "true"
+      GENESIS_LOG_JSON: "true"
+      GENESIS_DATA_DIR: /data
+      GENESIS_CORS_ORIGINS: ${GENESIS_CORS_ORIGINS:-http://localhost:1420,tauri://localhost}
+    volumes:
+      - workspaces:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${GENESIS_PORT:-8787}:8787"
+    healthcheck:
+      test: ["CMD", "/app/genesis-server", "-version"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # v0.2 — the AI engine is defined here so the topology is complete and the
+  # profile can be enabled the moment inference lands.
+  ai-engine:
+    profiles: ["ai"]
+    build:
+      context: ./services/ai-engine
+    container_name: genesis-ai-engine
+    environment:
+      GENESIS_AI_ADDR: "0.0.0.0:8790"
+      GENESIS_MODEL_DIR: /models
+    volumes:
+      - models:/models
+    ports:
+      - "${AI_ENGINE_PORT:-8790}:8790"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  qdrantdata:
+  workspaces:
+  models:
