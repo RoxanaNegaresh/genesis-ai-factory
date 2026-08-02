@@ -666,7 +666,6 @@ It works. Blueprints cover CRM, project management, ERP, marketplace and SaaS,
 and unknown domains get a synthesised blueprint with structural repair. A model
 adds product-specific reasoning on top.
 
----
 
 
 </div>
