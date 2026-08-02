@@ -4,11 +4,7 @@
 
 **Describe a product in plain English. Get a repository that compiles, tests and runs.**
 
-[![CI](https://github.com/YOUR_ORG/genesis-ai-factory/actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
-[![Release](https://github.com/YOUR_ORG/genesis-ai-factory/actions/workflows/desktop-release.yml/badge.svg)](../../actions/workflows/desktop-release.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go&logoColor=white)](https://go.dev)
-[![Runs offline](https://img.shields.io/badge/runs-100%25%20offline-brightgreen.svg)](#no-accounts-no-api-keys-no-subscription)
+
 
 Local-first · No account · No API key · No telemetry
 
