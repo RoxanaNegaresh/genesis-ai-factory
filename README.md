@@ -245,6 +245,7 @@ your-project/
 ---
 
 ## Running a generated project
+<img alt="Screenshot 2026-07-31 140836" src="https://github.com/user-attachments/assets/cc9a9546-bf4a-4cfe-8b87-200811cc1b21" />
 
 ```bash
 cd your-project
