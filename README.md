@@ -4,6 +4,7 @@
 
 **Describe a product in plain English. Get a repository that compiles, tests and runs.**
 
+<img alt="Screenshot 2026-07-31 154242" src="https://github.com/user-attachments/assets/03d3c66e-fcc7-4568-a46d-ffb885565296" />
 
 
 Local-first · No account · No API key · No telemetry
